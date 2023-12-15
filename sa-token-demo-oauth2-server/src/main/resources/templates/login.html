@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>锐狐RAM单点登录入口</title>
+    <link rel="stylesheet" type="text/css" href="/css/index.css">
+    <link rel="stylesheet" type="text/css" href="/fonts/iconfont.css">
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/1.5.0/axios.js"></script>
+</head>
+
+<body>
+<div class="login-header">
+    <img src="/images/favicon.png" alt="" class="login-header-img">
+    <p class="login-header-title">锐狐授权服务器</p>
+</div>
+<div class="login-container">
+    <form>
+        <div class="login-tabs">
+            <div class="login-tab-item" id="login-tab-user" onclick="toggleTab('0')">账户密码登录</div>
+            <div class="login-tab-item" id="login-tab-phone" onclick="toggleTab('1')">手机短信验证登录</div>
+        </div>
+        <div class="login-tabpane">
+            <div class="login-tabpane-item">
+                <input type="text" id="account" name="account" placeholder="请输入用户名">
+                <input type="password" id="password" name="password" placeholder="请输入密码">
+                <div class="identfy-img">
+                    <input type="text" id="imgCode" name="imgCode" placeholder="请输入图片验证码">
+                    <img src="" alt="" id="imageCode">
+                </div>
+            </div>
+            <div class="login-tabpane-item">
+                <input type="text" id="phone" name="phone" placeholder="请输入手机号">
+                <div class="identfy-code">
+                    <input type="text" id="messageCode" name="messageCode" placeholder="请输入短信验证码">
+                    <button id="getCodeBtn" onclick="handleGetCode()">获取验证码</button>
+                </div>
+            </div>
+        </div>
+        <div class="login-footer">
+            <button type="submit">登录</button>
+            <div class="login-tabpane-footer">
+                <a class="reset" href="./reset.html">忘记密码</a>
+                <a class="register"  href="./register.html">注册账户</a>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="copy-right">
+    ruifox
+</div>
+<script>
+    var selectedIndex = '0'
+    // 初始化
+    window.onload = function () {
+        let defaultTab = document.getElementById("login-tab-user");
+        defaultTab.classList.add("selected");
+        let defaultPane = document.getElementsByClassName("login-tabpane-item");
+        defaultPane[1].style.display = "none";
+        let identfyImg = document.getElementById('imageCode');
+        console.log(identfyImg,888);
+        axios.get('图片验证码接口') // 替换为后端接口地址
+            .then(function (res) {
+                identfyImg.src = res.data
+                console.log(res.data);
+            })
+            .catch(function (error) {
+                console.error('请求发生错误:', error);
+            });
+    }
+    // 切换
+    function toggleTab(idx) {
+        selectedIndex = idx;
+        // tab切换
+        let tabs = document.getElementsByClassName("login-tab-item");
+        for (let i = 0; i < tabs.length; i++) {
+            tabs[i].classList.remove("selected");
+        }
+        tabs[idx].classList.add("selected");
+        // 表单切换
+        let panes = document.getElementsByClassName("login-tabpane-item");
+        for (let i = 0; i < panes.length; i++) {
+            panes[i].style.display = "none";
+        }
+        panes[idx].style.display = "flex";
+    }
+    // 表单校验
+    let form = document.querySelector('form');
+    form.addEventListener('submit', function (event) {
+        let formValue = {}
+        if (selectedIndex === '0') {
+            let account = document.getElementById('account');
+            let password = document.getElementById('password');
+            let imgCode = document.getElementById('imgCode');
+            if (account.value === '' || password.value === '' || imgCode === '') {
+                event.preventDefault();
+                alert('用户名密码和验证码不能为空！');
+            } else {
+                formValue.name = account.value;
+                formValue.pwd = password.value;
+                formValue.imgCode = imgCode.value;
+            }
+        } else {
+            let phone = document.getElementById('phone');
+            let messageCode = document.getElementById('messageCode');
+            if (phone.value === '' || messageCode.value === '') {
+                event.preventDefault();
+                alert('手机号和验证码不能为空！');
+            } else {
+                formValue.phone = account.value;
+                formValue.messageCode = messageCode.value;
+            }
+        }
+        event.preventDefault();
+        console.log(formValue, 999);
+        // axios.get('/oauth2/doLogin') // 替换为后端接口地址
+        axios.get(`/oauth2/doLogin?name=${formValue.name}&pwd=${formValue.pwd}`)
+            .then(function (res) {
+                let data = res.data;
+                console.log(data);
+                location.reload(true);
+            })
+            .catch(function (error) {
+                console.error('请求发生错误:', error);
+            });
+    });
+    // 获取验证码前,先看表单校验是否通过,未通过则不发送请求,通过则开始60秒倒计时
+    function handleGetCode() {
+        const form = document.querySelector('form');
+        const phoneInput = form.querySelector('#phone');
+        const getCodeBtn = form.querySelector('#getCodeBtn');
+        if (phoneInput.value === '') {
+            event.preventDefault();
+            alert('手机号不能为空！');
+            return
+        }
+        let count = 60;
+        getCodeBtn.disabled = true;
+        getCodeBtn.innerText = `${count}秒后重新获取`;
+        const countdown = setInterval(() => {
+            count--;
+            getCodeBtn.innerText = `${count}秒后重新获取`;
+            if (count === 0) {
+                // 倒计时结束后重新启用获取验证码按钮
+                clearInterval(countdown);
+                getCodeBtn.disabled = false;
+                getCodeBtn.innerText = '获取验证码';
+            }
+        }, 1000);
+        // 发送获取验证码
+        sendRequestForCode(phoneInput.value);
+    }
+    // 发送获取验证码
+    function sendRequestForCode(phone) {
+        axios.get('验证码发送接口') // 替换为后端接口地址
+            .then(function (res) {
+                let data = res.data;
+                console.log(data);
+            })
+            .catch(function (error) {
+                console.error('请求发生错误:', error);
+            });
+    }
+</script>
+</body>
+
+</html>

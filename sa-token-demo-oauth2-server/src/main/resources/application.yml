@@ -1,0 +1,59 @@
+server: 
+    port: 8001
+
+# sa-token配置
+sa-token: 
+    # token名称 (同时也是cookie名称)
+    token-name: server-token
+    # OAuth2.0 配置 
+    oauth2: 
+        is-code: true
+        is-implicit: true
+        is-password: true
+        is-client: true
+#    token-style: tik
+    #JWT 秘钥
+    jwt-secret-key: ruifox_cloud_authorization_server_smart_jwk
+spring:
+    #数据源相关配置
+    datasource:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://127.0.0.1:3306/ruifox_authorization_server?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&nullCatalogMeansCurrent=true&allowMultiQueries=true
+        username: root
+        password: hrk1314159
+    # redis配置 
+    redis:
+        # Redis数据库索引（默认为0）
+        database: 1
+        # Redis服务器地址
+        host: 127.0.0.1
+        # Redis服务器连接端口
+        port: 6379
+        # Redis服务器连接密码（默认为空）
+        # password: 
+        # 连接超时时间（毫秒）
+        timeout: 1000ms
+        lettuce:
+            pool:
+                # 连接池最大连接数
+                max-active: 200
+                # 连接池最大阻塞等待时间（使用负值表示没有限制）
+                max-wait: -1ms
+                # 连接池中的最大空闲连接
+                max-idle: 10
+                # 连接池中的最小空闲连接
+                min-idle: 0
+# mybatis日志
+mybatis-plus:
+    configuration:
+        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+        map-underscore-to-camel-case: true
+        use-generated-keys: true
+justauth:
+    cache:
+        type: redis
+        # 缓存前缀，目前只对redis缓存生效，默认 JUSTAUTH::STATE::
+        prefix: 'justOauth::state::'
+        # 超时时长，目前只对redis缓存生效，默认3分钟
+        timeout: 1h
+        

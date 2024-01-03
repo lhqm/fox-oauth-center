@@ -4,7 +4,7 @@ server:
 # sa-token配置
 sa-token: 
     # token名称 (同时也是cookie名称)
-    token-name: server-token
+    token-name: X-token
     # OAuth2.0 配置 
     oauth2: 
         is-code: true
@@ -21,6 +21,17 @@ spring:
         url: jdbc:mysql://127.0.0.1:3306/ruifox_authorization_server?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&nullCatalogMeansCurrent=true&allowMultiQueries=true
         username: root
         password: hrk1314159
+#    thymeleaf:
+#        enabled: true
+#        prefix: classpath:/templates/
+#        suffix: .html
+#        cache: false
+#        mode: HTML
+#        encoding: UTF-8
+#    mvc:
+#      view:
+#          prefix: templates/
+#          suffix: .html
     # redis配置 
     redis:
         # Redis数据库索引（默认为0）
@@ -56,4 +67,14 @@ justauth:
         prefix: 'justOauth::state::'
         # 超时时长，目前只对redis缓存生效，默认3分钟
         timeout: 1h
-        
+qywx:
+    baseUrl: http://10.10.0.29:8001/qywx
+    # 企业微信配置
+    corp:
+        # 应用Secret
+        app-secret: r0r4uHQTGiFS9-m5aM1E2I4OpH5e4J2qUpqjF5PTDT4
+        # 企业ID
+        corp-id: ww6a7bc28e96f07af5
+        # 应用的agentid
+        agent-id: 1000031
+        redirect-uri: http://10.10.0.55:8082/login/callback?type=qywx

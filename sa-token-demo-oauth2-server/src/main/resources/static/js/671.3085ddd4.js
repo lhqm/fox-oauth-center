@@ -1,0 +1,2 @@
+"use strict";(self["webpackChunkruifox_oauth2"]=self["webpackChunkruifox_oauth2"]||[]).push([[671],{3671:function(u,t,e){e.r(t),e.d(t,{default:function(){return a}});var n=e(8473),r={__name:"LoginForget",setup(u){return(u,t)=>((0,n.wg)(),(0,n.iD)("div",null," forget "))}};const o=r;var a=o}}]);
+//# sourceMappingURL=671.3085ddd4.js.map

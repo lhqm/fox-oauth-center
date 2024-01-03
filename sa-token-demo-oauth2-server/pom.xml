@@ -112,9 +112,41 @@
 			<artifactId>fastjson</artifactId>
 			<version>2.0.32</version>
 		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+			<version>4.9.0</version>
+		</dependency>
 	</dependencies>
 
-
-
+	<build>
+		<finalName>auth-server</finalName>
+		<plugins>
+			<!-- 插件配置中省略其他内容 -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<mainClass>com.pj.SaOAuth2ServerApplication</mainClass>
+				</configuration>
+			</plugin>
+		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<includes>
+					<include>static/**</include>
+					<include>templates/**</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>application.yml</include>
+				</includes>
+			</resource>
+		</resources>
+	</build>
 
 </project>

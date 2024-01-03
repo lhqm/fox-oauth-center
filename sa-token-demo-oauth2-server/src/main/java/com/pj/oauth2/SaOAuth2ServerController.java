@@ -4,12 +4,14 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.pj.model.entity.AuthUser;
 import com.pj.model.entity.ClientInfo;
 import com.pj.service.ClientService;
 import com.pj.service.impl.UserDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
@@ -46,7 +48,15 @@ public class SaOAuth2ServerController {
 		cfg.
 			// 未登录的视图 
 			setNotLoginView(()->{
-				return new ModelAndView("login.html");	
+//				return new ModelAndView("login.html");
+				System.out.println("进入授权服务器");
+				Map<String, String> paramMap = SaHolder.getRequest().getParamMap();
+				StringBuilder paramLine= new StringBuilder();
+				for (String k : paramMap.keySet()) {
+					paramLine.append("&").append(k).append("=").append(paramMap.get(k));
+				}
+				paramLine.replace(0, 1, "?");
+				return new ModelAndView("redirect:/"+ paramLine);
 			}).
 			// 登录处理函数 
 			setDoLoginHandle((name, pwd) -> userDetailService.loadAndInitUser(name,pwd)).
@@ -64,8 +74,8 @@ public class SaOAuth2ServerController {
 				map.put("account", StpUtil.getExtra("account"));
 				map.put("avatar", StpUtil.getExtra("avatar"));
 				map.put("nickName",StpUtil.getExtra("nickName"));
-
-				return new ModelAndView("confirm.html", map); 
+				return new ModelAndView("confirm.html", map);
+//				return new ModelAndView("redirect:/login/authorize?clientId="+clientId+"&"+"scope="+scope);
 			});
 	}
 
@@ -81,6 +91,22 @@ public class SaOAuth2ServerController {
 	@RequestMapping("/oauth2/isLogin")
 	public SaResult isLogin() {
 		return SaResult.data(StpUtil.isLogin());
+	}
+	@GetMapping("/oauth2/authInfo")
+	@SaCheckLogin
+	public SaResult authInfo(String clientId){
+		Map<String, Object> map = new HashMap<>();
+		ClientInfo clientInfo=clientId==null?null:clientService.getClientInfo(clientId);
+		//封装客户端信息
+		map.put("clientId", clientId==null?"":clientId);
+		map.put("clientName", clientId==null?"授权服务器":clientInfo.getClientName());
+		map.put("clientIcon", clientId==null?"":clientInfo.getClientIcon());
+		//封装个人信息
+//				AuthUser authUser = userDetailService.getAuthUser();
+		map.put("account", StpUtil.getExtra("account"));
+		map.put("avatar", StpUtil.getExtra("avatar"));
+		map.put("nickName",StpUtil.getExtra("nickName"));
+		return SaResult.data(map);
 	}
 	
 	

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
  * @date 2023/12/28 11:08
  */
 @Service
+@Deprecated
 public class QrCodeCallback {
     @Autowired
     private RedisUtil redisUtil;

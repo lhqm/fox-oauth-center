@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.pj.mapper.AskPairMapper">
+
+  <select id="getClientDataByClientId" resultType="com.pj.model.entity.AskKeyPair">
+    SELECT * from oauth_ask_pair WHERE client_id =(
+      SELECT
+        id
+      FROM
+        oauth_clients_info
+      WHERE
+        client_id = #{id}
+-- 	使用limit 1防止出现因为客户端重名而出现的线上故障，使用温和方式排除
+      LIMIT 1)
+  </select>
+</mapper>

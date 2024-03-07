@@ -1,141 +1,232 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<title>锐狐授权服务器-确认授权</title>
-		<style type="text/css">
-			body{background-color: rgba(245, 245, 213, 0.1);}
-			*{margin: 0px; padding: 0px;}
-			.login-box{width: 400px; margin: 20vh auto; padding: 70px; border: 1px #000 solid;}
-			.login-box button{padding: 5px 15px; cursor: pointer; }
-			html{padding:0px;margin:0px;}
-			.title{background-color:#76b7b9;height:50px;padding-left:20%;padding-right:20%;color:white;line-height:50px;font-size:18px;}
-			.title-left{float:right;}.title-right{float:left;}.title-left a{color:white;}
-			.container{clear:both;margin-top:5rem;text-align:center;}
-			.btn{width:70px;height:35px;line-height:35px;cursor:pointer;margin-top:20px;margin-left:1rem;border-radius:3px;color:white;border:none;font-size:15px;}
-		</style>
-	</head>
-	<body>
-		<div class="title">
-			<div class="title-right">锐狐授权校验页</div>
-			<div class="title-left">
-				<a href="#help">帮助</a>
-			</div>
-		</div>
-		<div class="container">
-			<img th:src="${clientIcon}" alt="logo" style="width: 100px;height: 100px;margin-bottom: 3rem">
-			<div style="width: 20rem;height: 5rem;box-shadow: 2px 2px rgba(0,0,0,0.15);margin-left: auto;margin-right: auto;margin-bottom: 1rem">
-				<img th:src="${avatar}" alt="avatar" style="width: 4.5rem;height: 4.5rem;float: left">
-<!--				<img src="http://xboot.exrick.cn/img/logo-min.bfdd4967.png" alt="avatar" style="width: 5rem;height: 5rem;border-radius: 50%;float: left">-->
-				<div style="float: left;margin-left: 2rem;margin-top: 1rem;color: #696868">
-<!--					<h4 style="color: #3a3939">用户昵称</h4>-->
-<!--					<div style="margin-top: .5rem">wxid_123141xwer</div>-->
-					<h4 style="color: #3a3939" th:text="${nickName}"></h4>
-					<div style="margin-top: .5rem" th:text="${account}"></div>
-				</div>
-			</div>
-			<h4 th:text="${clientName}+'('+${clientId}+')请求授权，该应用将获取你的以下信息:'"></h4>
-			<p>昵称，头像和其他用户个人信息</p>
-			授权后表明你已同意 <a  href="#boot" style="color: #E9686B">锐狐互联网站点服务协议</a>
-			<div>
-				<input type="hidden" name="user_oauth_approval" value="true">
-				<div th:each="item:${scopes}">
-					<button onclick="yes()" class="btn" style="background-color: #76b7b9">同意</button>
-					<button onclick="no()" class="btn" style="background-color: #E9686B">拒绝</button>
-<!--					<input type="radio" th:name="'scope.'+${item}" value="false" >拒绝-->
-				</div>
-<!--				<input name="authorize" style="padding: .3rem 1rem;margin-top: 1rem;background-color: rgba(255,0,0,0.2);border: .1rem red solid;border-radius: 5px;color: gray" value="确认选择" type="submit">-->
-			</div>
 
-		</div>
+<head>
+	<meta charset="utf-8">
+	<title>锐狐授权服务器-确认授权</title>
+	<style type="text/css">
+		body {
+			background-color: rgba(245, 245, 213, 0.1);
+		}
 
-<!--		<div class="login-box">-->
-<!--			<h2>Sa-OAuth2-认证中心-确认授权页</h2> <br>-->
-<!--			<div>-->
-<!--				<div><b>应用ID：</b><span th:utext="${clientId}"></span></div>-->
-<!--				<div><b>请求授权：</b><span th:utext="${scope}"></span></div>-->
-<!--				<br><div>-&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; 是否同意授权 -&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;</div><br>-->
-<!--				<div>-->
-<!--					<button onclick="yes()">同意</button>-->
-<!--					<button onclick="no()">拒绝</button>-->
-<!--				</div>-->
-<!--			</div>-->
-<!--		</div>-->
-		<script src="https://unpkg.zhimg.com/jquery@3.4.1/dist/jquery.min.js"></script>
-		<script src="https://www.layuicdn.com/layer-v3.1.1/layer.js"></script>
-		<script>window.jQuery || alert('当前页面CDN服务商已宕机，请将所有js包更换为本地依赖')</script>
-		<script type="text/javascript">
-			
-			// 同意授权
-			function yes() {
-				console.log('-----------');
-				$.ajax({
-					url: '/oauth2/doConfirm',
-					data: {
-						client_id: getParam('client_id'),
-						scope: getParam('scope')
-					},
-					dataType: 'json',
-					success: function(res) {
-						if(res.code == 200) {
-							layer.msg('授权成功！');
-							setTimeout(function() {
-								location.reload(true);
-							}, 800);
-						} else {
-							// 重定向至授权失败URL 
-							layer.alert('授权失败！');
-						}
-					},
-					error: function(e) {
-						console.log('error');
+		*, html, body {
+			margin: 0px;
+			padding: 0px;
+		}
+		body{
+			background-color: #f5f5f5;
+		}
+		.authorize {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 100px auto 0;
+			box-sizing: border-box;
+        }
+        .authorize-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        .authorize-header img {
+            margin-bottom: 20px;
+            width: 6rem;
+            border-radius: 50%;
+        }
+        .authorize-header .title {
+            font-size: 24px;
+        }
+        .authorize-card {
+			padding: 40px;
+            width: 500px;
+			box-sizing: border-box;
+			border-radius: 4px;
+			border: 1px solid #e4e7ed;
+			box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.12);
+			background: #fff;
+			overflow: hidden;
+            .card-top {
+                border-bottom: 1px solid #ebeef5;
+            }
+            .card-top .authorize-detail {
+                display: flex;
+                align-items: center;
+				margin-bottom: 40px;
+            }
+            .card-top .detail-left {
+				flex-shrink: 0;
+                margin-right: 15px;
+                width: 40px;
+                height: 40px;
+                overflow: hidden;
+				img{
+					width: 100%;
+					object-fit: cover;
+					border-radius: 50%;
+				}
+            }
+            .card-top .detail-right {
+                .detail-right-title {
+                    margin-bottom: 5px;
+                    font-size: 16px;
+                    color: #24292e;
+                }
+                .detail-right-desc {
+                    font-size: 14px;
+                    color: #586069;
+                }
+            }
+        }
+        .card-bottom {
+            padding-top: 30px;
+            .authrize-btns {
+                display: flex;
+                flex-wrap: nowrap;
+				justify-content: space-between;
+                margin-bottom: 30px;
+            }
+            .authrize-btns button {
+                width: calc((100% - 10px) / 2);
+				height: 40px;
+				border: none;
+				border-radius: 4px;
+				color: #fff;
+				cursor: pointer;
+            }
+			.authrize-btns .yes{
+				background-color: #f56c6c;
+			}
+			.authrize-btns .no{
+				background-color: #409eff;
+			}
+            .authrize-link {
+                text-align: center;
+                color: #586069;
+            }
+            .protocol {
+                color: #E9686B;
+                text-decoration: underline;
+                cursor: pointer;
+            }
+        }
+	</style>
+</head>
+
+<body>
+	<div class="authorize">
+        <div class="authorize-header">
+            <img th:src="${clientIcon}" alt="">
+			<div th:text="${clientName}" class="title"></div>
+        </div>
+        <div class="authorize-card">
+            <div class="card-top">
+                <div class="authorize-detail">
+                    <div class="detail-left">
+						<img th:src="${clientIcon}" alt="">
+                    </div>
+                    <div class="detail-right">
+                        <div class="detail-right-title" th:text="${clientName}+${clientId}"></div>
+                        <div class="detail-right-desc">想要获取您的账户<span th:text="${nickName}+${account}"></span>的权限</div>
+                    </div>
+                </div>
+                <div class="authorize-detail">
+                    <div class="detail-left">
+						<img th:src="${avatar}" alt="">
+                    </div>
+                    <div class="detail-right">
+                        <div class="detail-right-title">授权后，将获得以下用户数据</div>
+                        <div class="detail-right-desc">获得您的昵称、头像、和其他用户个人信息</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-bottom">
+                <div class="authrize-btns">
+                    <button onclick="no()" class="no">拒绝</button>
+                    <button onclick="yes()" class="yes">同意</button>
+                </div>
+                <div class="authrize-link">
+                    授权后表明你已同意<span class="protocol" onclick="handleProtocol()"> 服务协议 </span>
+                </div>
+            </div>
+        </div>
+    </div>
+	<script src="https://unpkg.zhimg.com/jquery@3.4.1/dist/jquery.min.js"></script>
+	<script src="https://www.layuicdn.com/layer-v3.1.1/layer.js"></script>
+	<script>window.jQuery || alert('当前页面CDN服务商已宕机，请将所有js包更换为本地依赖')</script>
+	<script type="text/javascript">
+
+		// 同意授权
+		function yes() {
+			console.log('-----------');
+			$.ajax({
+				url: '/oauth2/doConfirm',
+				data: {
+					client_id: getParam('client_id'),
+					scope: getParam('scope')
+				},
+				dataType: 'json',
+				success: function (res) {
+					if (res.code == 200) {
+						layer.msg('授权成功！');
+						setTimeout(function () {
+							location.reload(true);
+						}, 800);
+					} else {
+						// 重定向至授权失败URL 
+						layer.alert('授权失败！');
 					}
-				});
-			}
-			
-			// 拒绝授权
-			function no() {
-				var url = joinParam(getParam('redirect_uri'), "handle=refuse&msg=用户拒绝了授权");
-				location.href = url;
-			}
-			
-			// 从url中查询到指定名称的参数值 
-			function getParam(name, defaultValue){
-				var query = window.location.search.substring(1);
-				var vars = query.split("&");
-				for (var i=0;i<vars.length;i++) {
-					var pair = vars[i].split("=");
-					if(pair[0] == name){return pair[1];}
+				},
+				error: function (e) {
+					console.log('error');
 				}
-				return(defaultValue == undefined ? null : defaultValue);
+			});
+		}
+
+		// 拒绝授权
+		function no() {
+			var url = joinParam(getParam('redirect_uri'), "handle=refuse&msg=用户拒绝了授权");
+			location.href = url;
+		}
+
+		// 从url中查询到指定名称的参数值 
+		function getParam(name, defaultValue) {
+			var query = window.location.search.substring(1);
+			var vars = query.split("&");
+			for (var i = 0; i < vars.length; i++) {
+				var pair = vars[i].split("=");
+				if (pair[0] == name) { return pair[1]; }
 			}
-			
-			// 在url上拼接上kv参数并返回 
-			function joinParam(url, parameStr) {
-				if(parameStr == null || parameStr.length == 0) {
-					return url;
-				}
-				var index = url.indexOf('?');
-				// ? 不存在
-				if(index == -1) {
-					return url + '?' + parameStr;
-				}
-				// ? 是最后一位
-				if(index == url.length - 1) {
+			return (defaultValue == undefined ? null : defaultValue);
+		}
+
+		// 在url上拼接上kv参数并返回 
+		function joinParam(url, parameStr) {
+			if (parameStr == null || parameStr.length == 0) {
+				return url;
+			}
+			var index = url.indexOf('?');
+			// ? 不存在
+			if (index == -1) {
+				return url + '?' + parameStr;
+			}
+			// ? 是最后一位
+			if (index == url.length - 1) {
+				return url + parameStr;
+			}
+			// ? 是其中一位
+			if (index > -1 && index < url.length - 1) {
+				// 如果最后一位是 不是&, 且 parameStr 第一位不是 &, 就增送一个 &
+				if (url.lastIndexOf('&') != url.length - 1 && parameStrindexOf('&') != 0) {
+					return url + '&' + parameStr;
+				} else {
 					return url + parameStr;
 				}
-				// ? 是其中一位
-				if(index > -1 && index < url.length - 1) {
-					// 如果最后一位是 不是&, 且 parameStr 第一位不是 &, 就增送一个 &
-					if(url.lastIndexOf('&') != url.length - 1 && parameStrindexOf('&') != 0) {
-						return url + '&' + parameStr;
-					} else {
-						return url + parameStr;
-					}
-				}
 			}
+		}
 
-						
-		</script>
-	</body>
+
+	</script>
+</body>
+
 </html>

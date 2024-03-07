@@ -5,10 +5,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.hutool.db.Session;
 import com.pj.model.entity.AuthUser;
 import com.pj.model.entity.ClientInfo;
 import com.pj.service.ClientService;
 import com.pj.service.impl.UserDetailService;
+import com.pj.util.session.SessionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +24,9 @@ import cn.dev33.satoken.oauth2.logic.SaOAuth2Handle;
 import cn.dev33.satoken.oauth2.logic.SaOAuth2Util;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 /**
  * Sa-OAuth2 Server端 控制器
@@ -55,6 +60,11 @@ public class SaOAuth2ServerController {
 				for (String k : paramMap.keySet()) {
 					paramLine.append("&").append(k).append("=").append(paramMap.get(k));
 				}
+//				可以进入这里，说明用户并没有登录。此时触发登录视图，只需要在session会话中缓存下用户的clientId即可
+//				paramMap.forEach((k,v)-> System.out.println(k+":"+v));
+				HttpSession session = SessionUtil.getSession();
+				if (session!=null) session.setAttribute("clientId",paramMap.get("client_id"));
+
 				paramLine.replace(0, 1, "?");
 				return new ModelAndView("redirect:/"+ paramLine);
 			}).

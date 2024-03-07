@@ -1,11 +1,7 @@
 package com.pj.controller;
 
-import cn.dev33.satoken.context.SaHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.servlet.ModelAndView;
 
-import java.util.Map;
 
 /**
  * @author 离狐千慕

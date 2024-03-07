@@ -69,12 +69,3 @@ justauth:
         timeout: 1h
 qywx:
     baseUrl: http://10.10.0.29:8001/qywx
-    # 企业微信配置
-    corp:
-        # 应用Secret
-        app-secret: r0r4uHQTGiFS9-m5aM1E2I4OpH5e4J2qUpqjF5PTDT4
-        # 企业ID
-        corp-id: ww6a7bc28e96f07af5
-        # 应用的agentid
-        agent-id: 1000031
-        redirect-uri: http://10.10.0.55:8082/login/callback?type=qywx

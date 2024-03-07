@@ -25,6 +25,7 @@ public class AskKeyPair {
     private String corpSecret;
     private Integer channel;
     private String appId;
+    private String redirectUrl;
     @TableLogic(value = "0",delval = "1")
     private Integer del;
 }

@@ -1,5 +1,6 @@
 package com.pj.oauth2.qywx;
 
+import cn.dev33.satoken.context.SaHolder;
 import cn.dev33.satoken.util.SaResult;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -44,8 +46,8 @@ public class RestAuthController {
 //    private String appId;
 //    @Value("${qywx.corp.agent-id}")
 //    private String agentId;
-    @Value("${qywx.corp.redirect-uri}")
-    private String redirectUri;
+//    @Value("${qywx.corp.redirect-uri}")
+//    private String redirectUri;
     @Value("${qywx.baseUrl}")
     private String baseUrl;
     @GetMapping("/baseUrl")
@@ -76,13 +78,14 @@ public class RestAuthController {
     public SaResult codeRender(String clientId) {
 //        如果为空就先写入，这是基于无感客户端的实现，缺点就是占内存。但是就一个clientID也占不了多少，还简化开发
         if (clientId==null) clientId= SessionUtil.getSession().getAttribute("clientId").toString();
+        getParamByConfig().forEach((k,v)-> System.out.println(k+":"+v));
 
         JSONObject res=new JSONObject();
 //        获取三方登录信息
         AskKeyPair askKeyPair = clientThirdInfoService.getClientInfoKeysByClient(clientId, TenantChannelEnum.QYWX);
         res.put("appId", askKeyPair.getCorpId());
         res.put("agentId", askKeyPair.getAppId());
-        res.put("redirectUri", redirectUri);
+        res.put("redirectUri", askKeyPair.getRedirectUrl());
 //        生成随机state
         String state = AuthStateUtils.createState();
 //        state存入上下文
@@ -131,7 +134,7 @@ public class RestAuthController {
         return new AuthWeChatEnterpriseQrcodeRequest(AuthConfig.builder()
                 .clientId(askKeyPair.getCorpId())
                 .clientSecret(askKeyPair.getCorpSecret())
-                .redirectUri(redirectUri)
+                .redirectUri(askKeyPair.getRedirectUrl())
                 .agentId(askKeyPair.getAppId())
                 .scopes(List.of("snsapi_privateinfo"))
                 .build());
@@ -188,7 +191,7 @@ public class RestAuthController {
         return new AuthWeChatEnterpriseWebRequest(AuthConfig.builder()
                 .clientId(askKeyPair.getCorpId())
                 .clientSecret(askKeyPair.getCorpSecret())
-                .redirectUri(redirectUri+"na")
+                .redirectUri(askKeyPair.getRedirectUrl()+"na")
 //                .agentId(agentId)
 //                .scopes(List.of("snsapi_privateinfo"))
                 .build());
@@ -218,10 +221,15 @@ public class RestAuthController {
         return new AuthWeChatEnterpriseThirdQrcodeRequest(AuthConfig.builder()
                .clientId(askKeyPair.getCorpId())
                .clientSecret(askKeyPair.getCorpSecret())
-               .redirectUri(redirectUri+"th")
+               .redirectUri(askKeyPair.getRedirectUrl()+"th")
                .agentId(askKeyPair.getAppId())
                .scopes(List.of("snsapi_privateinfo"))
                 .build()
                );
+    }
+
+    private Map<String,String> getParamByConfig(){
+        System.out.println(SaHolder.getRequest().getUrl());
+        return SaHolder.getRequest().getParamMap();
     }
 }

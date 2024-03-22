@@ -7,6 +7,7 @@
 	<style type="text/css">
 		body {
 			background-color: rgba(245, 245, 213, 0.1);
+            background-image: url("/img/background.ed05d5bd.svg");
 		}
 
 		*, html, body {
@@ -126,8 +127,8 @@
 						<img th:src="${clientIcon}" alt="">
                     </div>
                     <div class="detail-right">
-                        <div class="detail-right-title" th:text="${clientName}+${clientId}"></div>
-                        <div class="detail-right-desc">想要获取您的账户<span th:text="${nickName}+${account}"></span>的权限</div>
+                        <div class="detail-right-title" th:text="${clientName}+${'【'+clientId+'】'}"></div>
+                        <div class="detail-right-desc">想要获取您的账户【<span style="color: #1d7aa6;text-underline: #24292e" th:text="${nickName}+${account}"></span>】的权限</div>
                     </div>
                 </div>
                 <div class="authorize-detail">

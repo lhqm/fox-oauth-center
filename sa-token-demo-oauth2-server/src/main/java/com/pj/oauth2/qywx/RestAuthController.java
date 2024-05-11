@@ -11,6 +11,7 @@ import com.pj.oauth2.tenant.TenantChannelEnum;
 import com.pj.service.impl.UserDetailService;
 
 import com.pj.util.session.SessionUtil;
+import lombok.extern.slf4j.Slf4j;
 import me.zhyd.oauth.config.AuthConfig;
 import me.zhyd.oauth.model.AuthResponse;
 import me.zhyd.oauth.request.AuthWeChatEnterpriseQrcodeRequest;
@@ -33,6 +34,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/qywx")
+@Slf4j
 public class RestAuthController {
     @Autowired
     private QYWXUserConvert convert;
@@ -65,8 +67,8 @@ public class RestAuthController {
      * @throws IOException
      */
     @RequestMapping("/render")
-    public void renderAuth(HttpServletResponse response,String clientId) throws IOException {
-        AuthRequest authRequest = getAuthRequest(clientId);
+    public void renderAuth(HttpServletResponse response,String client_id) throws IOException {
+        AuthRequest authRequest = getAuthRequest(client_id);
         response.sendRedirect(authRequest.authorize(AuthStateUtils.createState()));
     }
 //    @RequestMapping("/thirdRender")
@@ -75,21 +77,25 @@ public class RestAuthController {
 //        response.sendRedirect(authRequest.authorize(AuthStateUtils.createState()));
 //    }
     @GetMapping("/codeRender")
-    public SaResult codeRender(String clientId) {
+    public SaResult codeRender(String client_id) {
 //        如果为空就先写入，这是基于无感客户端的实现，缺点就是占内存。但是就一个clientID也占不了多少，还简化开发
-        if (clientId==null) clientId= SessionUtil.getSession().getAttribute("clientId").toString();
+        if (client_id==null) {
+            client_id= SessionUtil.getSession().getAttribute("clientId").toString();
+        }else {
+            rewriteClientId(client_id);
+        }
         getParamByConfig().forEach((k,v)-> System.out.println(k+":"+v));
 
         JSONObject res=new JSONObject();
 //        获取三方登录信息
-        AskKeyPair askKeyPair = clientThirdInfoService.getClientInfoKeysByClient(clientId, TenantChannelEnum.QYWX);
+        AskKeyPair askKeyPair = clientThirdInfoService.getClientInfoKeysByClient(client_id, TenantChannelEnum.QYWX);
         res.put("appId", askKeyPair.getCorpId());
         res.put("agentId", askKeyPair.getAppId());
         res.put("redirectUri", askKeyPair.getRedirectUrl());
 //        生成随机state
         String state = AuthStateUtils.createState();
 //        state存入上下文
-        getAuthRequest(clientId).authorize(state);
+        getAuthRequest(client_id).authorize(state);
         System.out.println("state:"+state);
         res.put("state", state);
         res.put("scope","snsapi_base");
@@ -102,13 +108,15 @@ public class RestAuthController {
      * @return 返回扫码回调
      */
     @RequestMapping("/callback")
-    public Object login(AuthCallback callback,String clientId) {
+    public Object login(AuthCallback callback,String client_id) {
         //        如果为空就先写入，这是基于无感客户端的实现，缺点就是占内存。但是就一个clientID也占不了多少，还简化开发
-        if (clientId==null) clientId= SessionUtil.getSession().getAttribute("clientId").toString();
-
+        if (client_id==null) {
+            client_id= SessionUtil.getSession().getAttribute("clientId").toString();
+        }else {
+            rewriteClientId(client_id);
+        }
         System.out.println("进入扫码授权回调，输出信息："+JSON.toJSONString(callback));
-        AuthRequest authRequest = getAuthRequest(clientId);
-        System.out.println(JSON.toJSONString(callback));
+        AuthRequest authRequest = getAuthRequest(client_id);
         // 登录成功后的回调信息
         AuthResponse<?> login = authRequest.login(callback);
         //获取到回调域返回的用户信息数据
@@ -126,11 +134,16 @@ public class RestAuthController {
      * <a href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=ww6a7bc28e96f07af5&redirect_uri=http://10.10.0.29:8001/qywx/callback&response_type=code&scope=snsapi_privateinfo&state=STATE&agentid=1000031#wechat_redirect">...</a>
      * @return AuthRequest 授权请求对象
      */
-    private AuthRequest getAuthRequest(String clientId) {
+    private AuthRequest getAuthRequest(String client_id) {
         //        如果为空就先写入，这是基于无感客户端的实现，缺点就是占内存。但是就一个clientID也占不了多少，还简化开发
-        if (clientId==null) clientId= SessionUtil.getSession().getAttribute("clientId").toString();
-
-        AskKeyPair askKeyPair = clientThirdInfoService.getClientInfoKeysByClient(clientId, TenantChannelEnum.QYWX);
+        if (client_id==null) {
+            client_id= SessionUtil.getSession().getAttribute("clientId").toString();
+        }else {
+            rewriteClientId(client_id);
+        }
+        AskKeyPair askKeyPair = clientThirdInfoService.getClientInfoKeysByClient(client_id, TenantChannelEnum.QYWX);
+        log.info("客户端ID"+client_id);
+        log.info("客户端信息"+JSON.toJSONString(askKeyPair));
         return new AuthWeChatEnterpriseQrcodeRequest(AuthConfig.builder()
                 .clientId(askKeyPair.getCorpId())
                 .clientSecret(askKeyPair.getCorpSecret())
@@ -146,11 +159,14 @@ public class RestAuthController {
      * @throws IOException
      */
     @RequestMapping("/nativeRender")
-    public void nativeRenderAuth(HttpServletResponse response,String clientId) throws IOException {
+    public void nativeRenderAuth(HttpServletResponse response,String client_id) throws IOException {
         //        如果为空就先写入，这是基于无感客户端的实现，缺点就是占内存。但是就一个clientID也占不了多少，还简化开发
-        if (clientId==null) clientId= SessionUtil.getSession().getAttribute("clientId").toString();
-
-        AuthRequest authRequest = getNativeRequest(clientId);
+        if (client_id==null) {
+            client_id= SessionUtil.getSession().getAttribute("clientId").toString();
+        }else {
+            rewriteClientId(client_id);
+        }
+        AuthRequest authRequest = getNativeRequest(client_id);
         response.sendRedirect(authRequest.authorize(AuthStateUtils.createState()));
     }
 
@@ -160,13 +176,17 @@ public class RestAuthController {
      * @return 返回内联浏览器响应回调
      */
     @RequestMapping("/nativeCallback")
-    public Object nativeLogin(AuthCallback callback,String clientId) {
+    public Object nativeLogin(AuthCallback callback,String client_id) {
         //        如果为空就先写入，这是基于无感客户端的实现，缺点就是占内存。但是就一个clientID也占不了多少，还简化开发
-        if (clientId==null) clientId= SessionUtil.getSession().getAttribute("clientId").toString();
-
-        AuthRequest authRequest = getNativeRequest(clientId);
+        if (client_id==null) {
+            client_id= SessionUtil.getSession().getAttribute("clientId").toString();
+        }else {
+            rewriteClientId(client_id);
+        }
+        AuthRequest authRequest = getNativeRequest(client_id);
         // 登录成功后的回调信息
         AuthResponse<?> login = authRequest.login(callback);
+        log.info("登录成功后的回调信息："+JSON.toJSONString(login));
         //获取到回调域返回的用户信息数据
         String userData = JSON.toJSONString(login.getData());
         //回调信息送入加工成用户信息，并且接入查询是否有用户，返回用户编号进行登录
@@ -183,11 +203,14 @@ public class RestAuthController {
      * @return
      */
 
-    private AuthRequest getNativeRequest(String clientId){
+    private AuthRequest getNativeRequest(String client_id){
         //        如果为空就先写入，这是基于无感客户端的实现，缺点就是占内存。但是就一个clientID也占不了多少，还简化开发
-        if (clientId==null) clientId= SessionUtil.getSession().getAttribute("clientId").toString();
-
-        AskKeyPair askKeyPair = clientThirdInfoService.getClientInfoKeysByClient(clientId, TenantChannelEnum.QYWX);
+        if (client_id==null) {
+            client_id= SessionUtil.getSession().getAttribute("clientId").toString();
+        }else {
+            rewriteClientId(client_id);
+        }
+        AskKeyPair askKeyPair = clientThirdInfoService.getClientInfoKeysByClient(client_id, TenantChannelEnum.QYWX);
         return new AuthWeChatEnterpriseWebRequest(AuthConfig.builder()
                 .clientId(askKeyPair.getCorpId())
                 .clientSecret(askKeyPair.getCorpSecret())
@@ -198,12 +221,15 @@ public class RestAuthController {
     }
 
     @RequestMapping("/thirdCallback")
-    public Object thirdLogin(AuthCallback callback,String clientId) {
+    public Object thirdLogin(AuthCallback callback,String client_id) {
         //        如果为空就先写入，这是基于无感客户端的实现，缺点就是占内存。但是就一个clientID也占不了多少，还简化开发
-        if (clientId==null) clientId= SessionUtil.getSession().getAttribute("clientId").toString();
-
+        if (client_id==null) {
+            client_id= SessionUtil.getSession().getAttribute("clientId").toString();
+        }else {
+            rewriteClientId(client_id);
+        }
         System.out.println("进入三方授权回调，输出信息："+JSON.toJSONString(callback));
-        AuthRequest authRequest = getThirdRequest(clientId);
+        AuthRequest authRequest = getThirdRequest(client_id);
         // 登录成功后的回调信息
         AuthResponse<?> login = authRequest.login(callback);
         //获取到回调域返回的用户信息数据
@@ -213,11 +239,15 @@ public class RestAuthController {
         return userDetailService.loadUserByModel(authUser,null,false);
     }
 
-    private AuthRequest getThirdRequest(String clientId){
+    private AuthRequest getThirdRequest(String client_id){
         //        如果为空就先写入，这是基于无感客户端的实现，缺点就是占内存。但是就一个clientID也占不了多少，还简化开发
-        if (clientId==null) clientId= SessionUtil.getSession().getAttribute("clientId").toString();
+        if (client_id==null) {
+            client_id= SessionUtil.getSession().getAttribute("clientId").toString();
+        }else {
+            rewriteClientId(client_id);
+        }
 
-        AskKeyPair askKeyPair = clientThirdInfoService.getClientInfoKeysByClient(clientId, TenantChannelEnum.QYWX);
+        AskKeyPair askKeyPair = clientThirdInfoService.getClientInfoKeysByClient(client_id, TenantChannelEnum.QYWX);
         return new AuthWeChatEnterpriseThirdQrcodeRequest(AuthConfig.builder()
                .clientId(askKeyPair.getCorpId())
                .clientSecret(askKeyPair.getCorpSecret())
@@ -231,5 +261,8 @@ public class RestAuthController {
     private Map<String,String> getParamByConfig(){
         System.out.println(SaHolder.getRequest().getUrl());
         return SaHolder.getRequest().getParamMap();
+    }
+    private void rewriteClientId(String clientId){
+        SessionUtil.getSession().setAttribute("clientId",clientId);
     }
 }

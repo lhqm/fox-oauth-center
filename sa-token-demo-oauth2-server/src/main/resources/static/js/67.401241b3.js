@@ -1,2 +1,0 @@
-"use strict";(self["webpackChunkruifox_oauth2"]=self["webpackChunkruifox_oauth2"]||[]).push([[67],{7067:function(n,u,e){e.r(u),e.d(u,{default:function(){return c}});var t=e(8473);const r={class:"loginIndex"};var a={__name:"LoginIndex",setup(n){return(n,u)=>{const e=(0,t.up)("router-view");return(0,t.wg)(),(0,t.iD)("div",r,[(0,t.Wm)(e)])}}},o=e(5312);const s=(0,o.Z)(a,[["__scopeId","data-v-fa5a9b46"]]);var c=s}}]);
-//# sourceMappingURL=67.401241b3.js.map
